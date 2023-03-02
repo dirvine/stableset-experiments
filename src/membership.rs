@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::collections::BTreeSet;
 use std::fmt::Debug;
 
@@ -6,8 +5,8 @@ use stateright::actor::{Id, Out};
 
 use crate::fake_crypto::SigSet;
 use crate::stable_set::StableSet;
-use crate::{fake_crypto::Sig, stable_set::Member};
-use crate::{Node, ELDER_COUNT};
+use crate::{stable_set::Member, ELDER_COUNT};
+use crate::Node;
 
 pub type Elders = BTreeSet<Id>;
 
@@ -36,6 +35,7 @@ impl Debug for Msg {
 pub struct Membership {
     pub stable_set: StableSet,
     pub joining_state: Option<(u64, SigSet<(u64, Id)>)>,
+    pub leaving_state: Option<(u64, SigSet<(u64, Id)>)>,
 }
 
 impl Membership {
@@ -59,6 +59,7 @@ impl Membership {
         Self {
             stable_set,
             joining_state: None,
+            leaving_state: None,
         }
     }
 

@@ -201,7 +201,7 @@ fn main() {
 
     ModelCfg {
         elder_count: 1,
-        server_count: 4,
+        server_count: 5,
         network,
     }
     .into_model()
