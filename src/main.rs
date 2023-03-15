@@ -1,3 +1,4 @@
+// main.rs
 mod fake_crypto;
 mod ledger;
 mod membership;
@@ -14,7 +15,7 @@ use ledger::{genesis_dbc, Tx, Wallet};
 use membership::Membership;
 use stable_set::StableSet;
 use stateright::{
-    actor::{model_peers, Actor, ActorModel, ActorModelState, Id, Network, Out},
+    actor::{Actor, ActorModel, ActorModelState, Id, Network, Out},
     Expectation, Model,
 };
 
@@ -154,7 +155,7 @@ impl Actor for Node {
                 state.to_mut().wallet.on_msg(&membership, id, src, msg, o)
             }
             Action::StartReissue => {
-                let input = genesis_dbc().clone();
+                let input = genesis_dbc();
 
                 let reissue_amount =
                     (0..self.peers.len()).find(|x| Id::from(*x) == id).unwrap() as u64;
@@ -169,7 +170,7 @@ impl Actor for Node {
                 );
             }
             Action::TriggerLeave => {
-                o.broadcast(&elders, &state.to_mut().membership.req_leave(id).into());
+                o.broadcast(&elders, &state.to_mut().membership.req_leave(id));
             }
         }
         if id > Id::from((self.peers.len() * 2) / 3)
@@ -198,8 +199,7 @@ fn reference_stable_set(state: &ActorModelState<Node, Vec<Msg>>) -> StableSet {
     state
         .actor_states
         .iter()
-        .filter(|s| !s.is_leaving)
-        .next()
+        .find(|s| !s.is_leaving)
         .map(|s| s.membership.stable_set.clone())
         .unwrap_or_default()
 }
@@ -221,7 +221,7 @@ fn prop_all_nodes_joined_who_havent_left(state: &ActorModelState<Node, Vec<Msg>>
         .iter()
         .enumerate()
         .filter(|(_, actor)| !actor.is_leaving)
-        .all(|(id, actor)| reference_stable_set.contains(id.into()))
+        .all(|(id, _actor)| reference_stable_set.contains(id.into()))
 }
 
 fn prop_all_nodes_who_are_leaving_eventually_left(state: &ActorModelState<Node, Vec<Msg>>) -> bool {
@@ -281,7 +281,7 @@ fn prop_no_double_spends(state: &ActorModelState<Node, Vec<Msg>>) -> bool {
 impl ModelCfg {
     fn into_model(self) -> ActorModel<Node, Self, Vec<Msg>> {
         ActorModel::new(self.clone(), vec![])
-            .actors((0..self.server_count).map(|i| Node {
+            .actors((0..self.server_count).map(|_i| Node {
                 genesis_nodes: BTreeSet::from_iter((0..self.elder_count).into_iter().map(Id::from)),
                 peers: (0..self.server_count).map(Id::from).collect(),
             }))

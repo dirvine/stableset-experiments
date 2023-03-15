@@ -44,7 +44,7 @@ impl Membership {
     }
 
     fn build_msg(&self, msg: Msg) -> crate::Msg {
-        build_msg(&self, msg)
+        build_msg(self, msg)
     }
 
     pub fn req_join(&self, id: Id) -> crate::Msg {
